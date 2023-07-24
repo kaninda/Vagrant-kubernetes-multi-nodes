@@ -7,22 +7,21 @@ Vagrant.configure("2") do |config|
     kmaster.vm.box = "ubuntu/focal64"
     kmaster.vm.hostname= "kmaster"
     kmaster.vm.box_url= "ubuntu/focal64"
-    kmaster.ssh.username= "vagrant"
-    kmaster.ssh.password= "vagrant"
-    kmaster.vm.network "private_network", ip: "192.168.56.100"
+    kmaster.vm.network :private_network, ip: "192.168.56.100"
     kmaster.vm.synced_folder "./data", "/vagrant_data"
-    kmaster.vm.provider "virtualbox" do |vb|
+    kmaster.vm.provider :virtualbox do |vb|
       vb.name = "kmaster"
       vb.cpus = 2
       vb.gui = false
       vb.memory = 2048
       vb.customize ["modifyvm", :id, "--natdnshostresolver1", "on"]
     end
-    config.vm.provision "shell", inline: <<-SHELL
+    kmaster.vm.provision "shell", inline: <<-SHELL
     sed -i 's/ChallengeResponseAuthentication no/ChallengeResponseAuthentication yes/g' /etc/ssh/sshd_config    
     service ssh restart
     apt install net-tools
     SHELL
+    kmaster.vm.provision "shell", path: "install_common.sh"
   end
   numberSrv=2
   #slave server
@@ -30,8 +29,6 @@ Vagrant.configure("2") do |config|
     config.vm.define "knode#{i}" do |knode|
       knode.vm.box = "ubuntu/focal64"
       knode.vm.hostname= "knode#{i}"
-      knode.ssh.username= "vagrant"
-      knode.ssh.password= "vagrant"
       knode.vm.network "private_network", ip: "192.168.56.11#{i}"
       knode.vm.synced_folder "./data0#{i}", "/vagrant_data"
       knode.vm.provider "virtualbox" do |v|
@@ -49,6 +46,7 @@ Vagrant.configure("2") do |config|
         echo " end ssh activion"
         echo "HELLO from  slave server#{i}"
       SHELL
+      knode.vm.provision "shell", path: "install_common.sh"
     end  
   end 
 end
