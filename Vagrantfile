@@ -22,6 +22,7 @@ Vagrant.configure("2") do |config|
     apt install net-tools
     SHELL
     kmaster.vm.provision "shell", path: "install_common.sh"
+    kmaster.vm.provision "shell", path: "install_master.sh"
   end
   numberSrv=2
   #slave server
