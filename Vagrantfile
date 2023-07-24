@@ -48,6 +48,7 @@ Vagrant.configure("2") do |config|
         echo "HELLO from  slave server#{i}"
       SHELL
       knode.vm.provision "shell", path: "install_common.sh"
+      knode.vm.provision "shell", path: "install_nodes.sh"
     end  
   end 
 end
