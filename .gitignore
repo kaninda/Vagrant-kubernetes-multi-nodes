@@ -31,3 +31,5 @@
 .vagrant/machines/knode1/virtualbox/action_set_name
 .vagrant/machines/knode1/virtualbox/action_provision
 .vagrant/machines/kmaster/virtualbox/synced_folders
+/.idea/.gitignore
+/.idea/aws.xml

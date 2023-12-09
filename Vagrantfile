@@ -1,54 +1,36 @@
-# -*- mode: ruby -*-
-# vi: set ft=ruby :
-
 Vagrant.configure("2") do |config|
-  #master
-  config.vm.define "kmaster" do |kmaster|
-    kmaster.vm.box = "ubuntu/focal64"
-    kmaster.vm.hostname= "kmaster"
-    kmaster.vm.box_url= "ubuntu/focal64"
-    kmaster.vm.network :private_network, ip: "192.168.56.100"
-    kmaster.vm.synced_folder "./data", "/vagrant_data"
-    kmaster.vm.provider :virtualbox do |vb|
-      vb.name = "kmaster"
-      vb.cpus = 2
-      vb.gui = false
-      vb.memory = 2048
-      vb.customize ["modifyvm", :id, "--natdnshostresolver1", "on"]
-    end
-    kmaster.vm.provision "shell", inline: <<-SHELL
-    sed -i 's/ChallengeResponseAuthentication no/ChallengeResponseAuthentication yes/g' /etc/ssh/sshd_config    
-    service ssh restart
-    apt install net-tools
+
+  # Configuration globale pour toutes les machines
+  config.vm.box = "ubuntu/bionic64"
+
+  # Configuration du premier noeud
+  config.vm.define "master" do |master|
+    master.vm.network "private_network", ip: "192.168.56.10"
+    master.vm.hostname = "master"
+
+    # Autoriser l'accès via SSH avec l'adresse IP
+    master.vm.provision "shell", inline: <<-SHELL
+      echo "vagrant ALL=(ALL) NOPASSWD:ALL" > /etc/sudoers.d/vagrant
+      sed -i 's/ChallengeResponseAuthentication no/ChallengeResponseAuthentication yes/g' /etc/ssh/sshd_config
+      service ssh restart
     SHELL
-    kmaster.vm.provision "shell", path: "install_common.sh"
-    kmaster.vm.provision "shell", path: "install_master.sh"
   end
-  numberSrv=2
-  #slave server
-  (1..numberSrv).each do |i|
-    config.vm.define "knode#{i}" do |knode|
-      knode.vm.box = "ubuntu/focal64"
-      knode.vm.hostname= "knode#{i}"
-      knode.vm.network "private_network", ip: "192.168.56.11#{i}"
-      knode.vm.synced_folder "./data0#{i}", "/vagrant_data"
-      knode.vm.provider "virtualbox" do |v|
-        v.name = "knode#{i}"
-        v.cpus = 1
-        v.gui = false
-        v.memory = "2048"
-      end
-      knode.vm.provision "shell", run: "always", inline: <<-SHELL
-        echo "activion ssh par adresse slave server#{i}"
-        sed -i 's/ChallengeResponseAuthentication no/ChallengeResponseAuthentication yes/g' /etc/ssh/sshd_config
-        service ssh restart
-        export DEBIAN_FRONTEND=noninteractive
-        apt install net-tools
-        echo " end ssh activion"
-        echo "HELLO from  slave server#{i}"
-      SHELL
-      knode.vm.provision "shell", path: "install_common.sh"
-      knode.vm.provision "shell", path: "install_nodes.sh"
-    end  
-  end 
+
+  # Configuration du deuxième noeud
+  config.vm.define "node1" do |node1|
+    node1.vm.network "private_network", ip: "192.168.56.11"
+    node1.vm.hostname = "node1"
+
+    # Autoriser l'accès via SSH avec l'adresse IP
+    node1.vm.provision "shell", inline: <<-SHELL
+      echo "vagrant ALL=(ALL) NOPASSWD:ALL" > /etc/sudoers.d/vagrant
+      sed -i 's/ChallengeResponseAuthentication no/ChallengeResponseAuthentication yes/g' /etc/ssh/sshd_config
+      service ssh restart
+    SHELL
+  end
+
+  # Configuration SSH (globale)
+  config.ssh.insert_key = true
+  config.ssh.forward_agent = true
+
 end
